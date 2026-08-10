@@ -1,0 +1,30 @@
+# Operating System
+.DS_Store
+Thumbs.db
+
+# IDEs
+.idea/
+*.iml
+.vscode/
+
+# Backend (Spring Boot / Java)
+backend/target/
+backend/logs/
+backend/uploads/
+backend/out/
+
+# Frontend (React / Vite)
+frontend/node_modules/
+frontend/dist/
+frontend/build/
+frontend/.env
+frontend/.env.local
+frontend/.env.development.local
+frontend/.env.test.local
+frontend/.env.production.local
+frontend/.eslintcache
+frontend/coverage/
+
+# Misc
+*.log
+bash.exe.stackdump

@@ -1,0 +1,41 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  :root {
+    --primary: #3b82f6;
+    --primary-hover: #2563eb;
+    --secondary: #6b7280;
+    --light: #f3f4f6;
+    --dark: #1f2937;
+    --danger: #ef4444;
+    --success: #22c55e;
+  }
+  
+  body {
+    @apply bg-gray-50 text-gray-800;
+  }
+}
+
+@layer components {
+  .btn {
+    @apply px-4 py-2 rounded-md font-medium transition-colors;
+  }
+  
+  .btn-primary {
+    @apply bg-blue-500 text-white hover:bg-blue-600;
+  }
+  
+  .btn-secondary {
+    @apply bg-gray-200 text-gray-800 hover:bg-gray-300;
+  }
+  
+  .btn-danger {
+    @apply bg-red-500 text-white hover:bg-red-600;
+  }
+  
+  .input {
+    @apply px-4 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500;
+  }
+}
