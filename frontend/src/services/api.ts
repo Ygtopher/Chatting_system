@@ -80,6 +80,14 @@ export const chatApi = {
 
   updateMessage: (messageId: number, content: string) =>
     api.put(`/api/chat/messages/${messageId}`, { content }),
+
+  uploadChatFile: (file: File) => {
+    const formData = new FormData();
+    formData.append('file', file);
+    return api.post('/api/chat/upload', formData, {
+      headers: { 'Content-Type': 'multipart/form-data' },
+    });
+  },
 };
 
 // ─── Group chats ──────────────────────────────────────────────────────────────

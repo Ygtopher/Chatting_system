@@ -472,6 +472,47 @@ public class ChatController {
         }
     }
 
+    @PostMapping("/api/chat/upload")
+    public ResponseEntity<?> uploadFile(
+            Authentication authentication,
+            @RequestParam("file") org.springframework.web.multipart.MultipartFile file) {
+        
+        if (file.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "File is empty"));
+        }
+
+        try {
+            java.nio.file.Path uploadPath = java.nio.file.Paths.get("./uploads");
+            if (!java.nio.file.Files.exists(uploadPath)) {
+                java.nio.file.Files.createDirectories(uploadPath);
+            }
+
+            String originalFilename = file.getOriginalFilename();
+            String extension = (originalFilename != null && originalFilename.contains("."))
+                    ? originalFilename.substring(originalFilename.lastIndexOf("."))
+                    : "";
+            String filename = "file_" + System.currentTimeMillis() + extension;
+            java.nio.file.Path filePath = uploadPath.resolve(filename);
+            java.nio.file.Files.copy(file.getInputStream(), filePath, java.nio.file.StandardCopyOption.REPLACE_EXISTING);
+
+            String fileUrl = "/uploads/" + filename;
+            
+            String type = "DOCUMENT";
+            if (file.getContentType() != null) {
+                if (file.getContentType().startsWith("image/")) type = "IMAGE";
+                else if (file.getContentType().startsWith("video/")) type = "VIDEO";
+            }
+
+            return ResponseEntity.ok(Map.of(
+                "url", fileUrl,
+                "type", type,
+                "originalName", originalFilename != null ? originalFilename : filename
+            ));
+        } catch (java.io.IOException e) {
+            return ResponseEntity.status(500).body(Map.of("error", "Failed to upload file: " + e.getMessage()));
+        }
+    }
+
     @DeleteMapping("/api/chat/messages/{messageId}")
     public ResponseEntity<?> deleteMessage(Authentication authentication, @PathVariable Long messageId) {
         User currentUser = userService.findByEmail(authentication.getName())

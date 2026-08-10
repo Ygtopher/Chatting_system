@@ -2,19 +2,20 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](LICENSE)
 
-A modern, robust, and feature-rich real-time chat application built with **Spring Boot** and **React**. This platform allows users to connect with friends, engage in one-on-one direct messaging, and create dynamic group chats. 
+A modern, robust, and feature-rich real-time chat application built with **Spring Boot** and **React**. This platform allows users to connect with friends, engage in one-on-one direct messaging, and create dynamic group chats with rich media sharing capabilities.
 
 ## Key Features
 
 * **Real-Time Messaging**: Lightning-fast messaging powered by WebSockets and STOMP.
+* **Rich Media Sharing (Up to 150MB)**: Send high-resolution images, videos (with built-in playback), and documents directly in chats.
 * **Direct & Group Chats**: Seamless 1-on-1 conversations and rich group chat capabilities.
 * **Smart Group Invitations**: Send, accept, and decline group invitations directly through interactive chat messages.
 * **System Event Notifications**: Live chat badges for users joining, leaving, or being removed from groups.
 * **Friend System**: Search for users and send/manage friend requests.
 * **Message Management**: Edit and delete your sent messages in real-time.
 * **Rich Notifications**: In-app popout toasts, audio chimes, and browser desktop notifications.
-* **Authentication & Security**: Secure JWT-based authentication, complete with email verification and password recovery.
-* **Profile Customization**: Upload profile pictures and update your display name.
+* **Authentication & Security**: Secure JWT-based authentication, complete with email verification, password recovery, and **Two-Factor Authentication (2FA)**.
+* **Profile Customization & Webcam Integration**: Personalize your account by uploading profile pictures, generating fallback avatars, or taking live photos using the built-in webcam integration.
 
 ## Technology Stack
 
@@ -24,6 +25,7 @@ A modern, robust, and feature-rich real-time chat application built with **Sprin
 * **Styling**: Tailwind CSS & Headless UI
 * **Icons**: Heroicons
 * **Networking**: Axios & `@stomp/stompjs`
+* **Media & APIs**: HTML5 Video/Canvas APIs (Webcam), FormData (File Uploads)
 * **Routing**: React Router DOM
 
 ### Backend
@@ -32,6 +34,7 @@ A modern, robust, and feature-rich real-time chat application built with **Sprin
 * **Database**: PostgreSQL & Spring Data JPA
 * **Real-Time**: Spring WebSocket
 * **Email Servicing**: JavaMailSender
+* **File Management**: MultipartFile processing and localized secure file storage
 
 ---
 
@@ -81,6 +84,8 @@ A modern, robust, and feature-rich real-time chat application built with **Sprin
 
 ## UI / UX Highlights
 
+- **Dynamic Media Attachments**: Uploaded images, videos, and documents render natively inside chat bubbles. Images can be expanded, videos have inline controls, and documents display as neat download cards.
+- **Webcam Modal**: Users can securely interact with their device cameras to capture and set profile pictures natively within the app.
 - **Dynamic Invite UI**: Group invites are beautifully rendered as actionable buttons inside the chat stream. If an invite expires or is processed, it smoothly transitions into a static status badge.
 - **Glassmorphism Toasts**: Custom-built, animated popup notifications alert users of new messages and friend requests without interrupting their workflow.
 - **Smooth Animations**: Tailored micro-animations (bouncing success alerts, sliding modals, pulsing loading states) create a premium user experience.
@@ -88,7 +93,8 @@ A modern, robust, and feature-rich real-time chat application built with **Sprin
 ## Security
 - Passwords are securely hashed using BCrypt.
 - All secure API endpoints are protected via JWT authorization headers.
-- File uploads are validated and strictly contained within the backend upload directory.
+- **Two-Factor Authentication (2FA)** support for enhanced account security using authenticator apps.
+- File uploads are validated and strictly contained within the backend upload directory (max 150MB).
 
 ## License
 This project is open-source and available under the [MIT License](LICENSE).

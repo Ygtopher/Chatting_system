@@ -144,9 +144,17 @@ export const Layout = ({ children }: LayoutProps) => {
           <Link to="/" className="text-xl font-bold text-blue-600">ChatApp</Link>
           {isAuthenticated && user && (
             <div className="flex items-center gap-2">
-              <span className="text-sm font-medium text-gray-700">
-                Welcome, {user.username}
-              </span>
+              <div className="flex items-center gap-2 mr-2">
+                <img 
+                  src={user.profilePicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.username)}`} 
+                  alt="Avatar" 
+                  className="w-8 h-8 rounded-full border border-gray-200 object-cover bg-gray-50"
+                  onError={(e) => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(user.username)}`; }}
+                />
+                <span className="text-sm font-medium text-gray-700 hidden sm:block">
+                  {user.username}
+                </span>
+              </div>
               <button
                 onClick={handleLogout}
                 className="p-2 rounded-full hover:bg-gray-100"

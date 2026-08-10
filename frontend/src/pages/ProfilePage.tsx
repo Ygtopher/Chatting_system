@@ -14,6 +14,12 @@ export const ProfilePage: React.FC = () => {
   const [avatarError, setAvatarError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
+  // Webcam state
+  const [isCameraOpen, setIsCameraOpen] = useState(false);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
+
   // Change Password state
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [newPassword, setNewPassword] = useState('');
@@ -32,6 +38,12 @@ export const ProfilePage: React.FC = () => {
     fetchProfileInfo();
   }, []);
 
+  useEffect(() => {
+    if (isCameraOpen && videoRef.current && streamRef.current) {
+      videoRef.current.srcObject = streamRef.current;
+    }
+  }, [isCameraOpen]);
+
   const fetchProfileInfo = async () => {
     try {
       const res = await usersApi.getProfile();
@@ -45,10 +57,7 @@ export const ProfilePage: React.FC = () => {
   };
 
   // Handle Avatar Upload
-  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-
+  const uploadFile = async (file: File) => {
     setUploadingAvatar(true);
     setAvatarSuccess(null);
     setAvatarError(null);
@@ -64,6 +73,54 @@ export const ProfilePage: React.FC = () => {
       );
     } finally {
       setUploadingAvatar(false);
+    }
+  };
+
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (file) await uploadFile(file);
+  };
+
+  // Webcam methods
+  const openCamera = async () => {
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'user' } });
+      streamRef.current = stream;
+      if (videoRef.current) {
+        videoRef.current.srcObject = stream;
+      }
+      setIsCameraOpen(true);
+      setAvatarError(null);
+    } catch (err) {
+      setAvatarError('Failed to access camera. Please check your browser permissions.');
+    }
+  };
+
+  const closeCamera = () => {
+    if (streamRef.current) {
+      streamRef.current.getTracks().forEach(track => track.stop());
+      streamRef.current = null;
+    }
+    setIsCameraOpen(false);
+  };
+
+  const capturePhoto = () => {
+    if (videoRef.current && canvasRef.current) {
+      const canvas = canvasRef.current;
+      const video = videoRef.current;
+      canvas.width = video.videoWidth;
+      canvas.height = video.videoHeight;
+      const ctx = canvas.getContext('2d');
+      if (ctx) {
+        ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+        canvas.toBlob(async (blob) => {
+          if (blob) {
+            const file = new File([blob], 'webcam-capture.jpg', { type: 'image/jpeg' });
+            closeCamera();
+            await uploadFile(file);
+          }
+        }, 'image/jpeg', 0.9);
+      }
     }
   };
 
@@ -182,14 +239,32 @@ export const ProfilePage: React.FC = () => {
               <p className="text-sm text-gray-500">{user?.email}</p>
             </div>
 
-            <button
-              type="button"
-              onClick={() => fileInputRef.current?.click()}
-              disabled={uploadingAvatar}
-              className="btn btn-secondary text-sm flex items-center space-x-2"
-            >
-              <span>{uploadingAvatar ? 'Uploading...' : 'Change Picture'}</span>
-            </button>
+            <div className="flex flex-col sm:flex-row gap-2">
+              <button
+                type="button"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploadingAvatar}
+                className="btn btn-secondary text-sm flex items-center justify-center space-x-2 whitespace-nowrap px-4"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12" />
+                </svg>
+                <span>{uploadingAvatar ? 'Uploading...' : 'Upload'}</span>
+              </button>
+              
+              <button
+                type="button"
+                onClick={openCamera}
+                disabled={uploadingAvatar}
+                className="bg-indigo-50 text-indigo-700 hover:bg-indigo-100 font-semibold py-2 px-4 border border-indigo-200 rounded-lg shadow-sm transition-all text-sm flex items-center justify-center space-x-2 whitespace-nowrap"
+              >
+                <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                <span>Take Photo</span>
+              </button>
+            </div>
           </div>
 
           {/* Feedback Banners */}
@@ -355,6 +430,43 @@ export const ProfilePage: React.FC = () => {
                 </button>
               </div>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* Webcam Modal */}
+      {isCameraOpen && (
+        <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/90 p-4">
+          <div className="bg-white rounded-xl shadow-2xl p-4 max-w-lg w-full flex flex-col items-center">
+            <h3 className="text-lg font-bold mb-4 text-gray-800">Take a Photo</h3>
+            <div className="relative w-full rounded-lg overflow-hidden bg-black flex justify-center mb-4 aspect-video">
+              <video 
+                ref={videoRef} 
+                autoPlay 
+                playsInline 
+                className="h-full object-contain mirror-video" 
+                style={{ transform: 'scaleX(-1)' }} 
+              />
+            </div>
+            <canvas ref={canvasRef} className="hidden" />
+            <div className="flex gap-4 w-full">
+              <button 
+                onClick={closeCamera} 
+                className="flex-1 px-4 py-3 bg-gray-200 hover:bg-gray-300 text-gray-800 rounded-lg font-semibold transition"
+              >
+                Cancel
+              </button>
+              <button 
+                onClick={capturePhoto} 
+                className="flex-1 px-4 py-3 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold transition flex items-center justify-center gap-2 shadow-lg hover:shadow-xl"
+              >
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M3 9a2 2 0 012-2h.93a2 2 0 001.664-.89l.812-1.22A2 2 0 0110.07 4h3.86a2 2 0 011.664.89l.812 1.22A2 2 0 0018.07 7H19a2 2 0 012 2v9a2 2 0 01-2 2H5a2 2 0 01-2-2V9z" />
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15 13a3 3 0 11-6 0 3 3 0 016 0z" />
+                </svg>
+                Snap & Upload
+              </button>
+            </div>
           </div>
         </div>
       )}

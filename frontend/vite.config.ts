@@ -18,6 +18,10 @@ export default defineConfig({
         ws: true,
         changeOrigin: true,
       },
+      '/uploads': {
+        target: 'http://localhost:9090',
+        changeOrigin: true,
+      },
     },
   },
 })

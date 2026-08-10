@@ -150,9 +150,12 @@ export const FriendsPage: React.FC = () => {
             {searchResults.map(u => (
               <li key={u.id} className="flex items-center justify-between py-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-blue-100 flex items-center justify-center text-blue-700 font-bold">
-                    {u.username.charAt(0).toUpperCase()}
-                  </div>
+                  <img
+                    src={u.profilePictureUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(u.username)}`}
+                    alt={u.username}
+                    className="w-10 h-10 rounded-full border border-gray-200 object-cover bg-gray-50"
+                    onError={(e) => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(u.username)}`; }}
+                  />
                   <div>
                     <p className="font-medium">{u.username}</p>
                     <p className="text-sm text-gray-500">{u.email}</p>
@@ -201,9 +204,12 @@ export const FriendsPage: React.FC = () => {
             {pendingRequests.map(req => (
               <li key={req.id} className="flex items-center justify-between py-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-purple-100 flex items-center justify-center text-purple-700 font-bold">
-                    {req.sender.username.charAt(0).toUpperCase()}
-                  </div>
+                  <img
+                    src={req.sender.profilePictureUrl || `https://ui-avatars.com/api/?name=${encodeURIComponent(req.sender.username)}`}
+                    alt={req.sender.username}
+                    className="w-10 h-10 rounded-full border border-gray-200 object-cover bg-gray-50"
+                    onError={(e) => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(req.sender.username)}`; }}
+                  />
                   <p className="font-medium">{req.sender.username}</p>
                 </div>
                 <div className="flex gap-2">
@@ -239,9 +245,12 @@ export const FriendsPage: React.FC = () => {
             {friends.map((f: any) => (
               <li key={f.id} className="flex items-center justify-between py-3">
                 <div className="flex items-center gap-3">
-                  <div className="w-10 h-10 rounded-full bg-green-100 flex items-center justify-center text-green-700 font-bold">
-                    {f.username.charAt(0).toUpperCase()}
-                  </div>
+                  <img
+                    src={f.profilePictureUrl || f.profilePicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(f.username)}`}
+                    alt={f.username}
+                    className="w-10 h-10 rounded-full border border-gray-200 object-cover bg-gray-50"
+                    onError={(e) => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(f.username)}`; }}
+                  />
                   <p className="font-medium">{f.username}</p>
                 </div>
                 <button

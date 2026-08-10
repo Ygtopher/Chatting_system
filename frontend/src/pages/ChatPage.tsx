@@ -2,9 +2,10 @@ import { useState, useRef, useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import { useChat } from '../context/ChatContext';
 import { useAuth } from '../context/AuthContext';
-import { friendsApi, groupApi } from '../services/api';
+import { friendsApi, groupApi, chatApi } from '../services/api';
 import { 
   PaperAirplaneIcon, 
+  PaperClipIcon,
   EllipsisVerticalIcon, 
   TrashIcon, 
   ArrowLeftIcon,
@@ -53,8 +54,30 @@ export const ChatPage = () => {
   const location = useLocation();
   const [messageInput, setMessageInput] = useState('');
   const [isSending, setIsSending] = useState(false);
+  const [isUploadingAttachment, setIsUploadingAttachment] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const messagesContainerRef = useRef<HTMLDivElement>(null);
+  const attachmentInputRef = useRef<HTMLInputElement>(null);
+
+  const handleAttachmentUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file || !selectedChat) return;
+
+    setIsUploadingAttachment(true);
+    try {
+      const response = await chatApi.uploadChatFile(file);
+      const { url, type, originalName } = response.data;
+      
+      const content = `FILE_ATTACHMENT|${type}|${url}|${originalName}`;
+      
+      await sendMessage(content);
+    } catch (error) {
+      alert('Failed to upload file. Make sure it is under 150MB.');
+    } finally {
+      setIsUploadingAttachment(false);
+      if (attachmentInputRef.current) attachmentInputRef.current.value = '';
+    }
+  };
 
   const [showDropdown, setShowDropdown] = useState<number | null>(null);
   const [editingMessageId, setEditingMessageId] = useState<number | null>(null);
@@ -374,9 +397,12 @@ export const ChatPage = () => {
                     onClick={() => selectChat(room)}
                   >
                     <div className="flex items-center">
-                      <div className="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center text-blue-600 font-bold">
-                        {room.otherUser.username.charAt(0).toUpperCase()}
-                      </div>
+                      <img
+                        src={room.otherUser.profilePicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(room.otherUser.username)}`}
+                        alt={room.otherUser.username}
+                        className="w-10 h-10 rounded-full border border-gray-200 object-cover bg-gray-50"
+                        onError={(e) => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(room.otherUser.username)}`; }}
+                      />
                       <div className="ml-3 flex-1">
                         <div className="flex justify-between">
                           <p className="font-medium text-sm text-gray-900">{room.otherUser.username}</p>
@@ -451,13 +477,18 @@ export const ChatPage = () => {
                   >
                     <ArrowLeftIcon className="w-5 h-5" />
                   </button>
-                  <div className={`w-10 h-10 rounded-full flex items-center justify-center text-white font-bold ${
-                    'name' in selectedChat ? 'bg-purple-600' : 'bg-blue-500'
-                  }`}>
-                    {'otherUser' in selectedChat 
-                      ? selectedChat.otherUser.username.charAt(0).toUpperCase() 
-                      : selectedChat.name.charAt(0).toUpperCase()}
-                  </div>
+                  {'otherUser' in selectedChat ? (
+                    <img
+                      src={selectedChat.otherUser.profilePicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedChat.otherUser.username)}`}
+                      alt={selectedChat.otherUser.username}
+                      className="w-10 h-10 rounded-full border border-gray-200 object-cover bg-gray-50"
+                      onError={(e) => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(selectedChat.otherUser.username)}`; }}
+                    />
+                  ) : (
+                    <div className="w-10 h-10 rounded-full flex items-center justify-center text-white font-bold bg-purple-600 shadow-sm border border-purple-200">
+                      {selectedChat.name.charAt(0).toUpperCase()}
+                    </div>
+                  )}
                   <div>
                     <h2 className="font-semibold text-gray-900">
                       {'otherUser' in selectedChat ? selectedChat.otherUser.username : selectedChat.name}
@@ -574,13 +605,21 @@ export const ChatPage = () => {
                     return (
                       <div 
                         key={message.id ? `msg-${message.id}-${index}` : `idx-${index}`}
-                        className={`flex ${isMyMessage ? 'justify-end' : 'justify-start'}`}
+                        className={`flex gap-2 w-full ${isMyMessage ? 'justify-end pl-12' : 'justify-start pr-12'}`}
                       >
+                        {!isMyMessage && (
+                          <img
+                            src={message.sender?.profilePicture || `https://ui-avatars.com/api/?name=${encodeURIComponent(message.sender?.username || 'User')}`}
+                            alt={message.sender?.username || 'User'}
+                            className="w-8 h-8 rounded-full border border-gray-200 object-cover bg-gray-50 self-end mb-1 shrink-0 shadow-sm"
+                            onError={(e) => { (e.target as HTMLImageElement).src = `https://ui-avatars.com/api/?name=${encodeURIComponent(message.sender?.username || 'User')}`; }}
+                          />
+                        )}
                         <div 
-                          className={`relative max-w-md px-4 py-2 rounded-lg shadow ${
+                          className={`relative max-w-full sm:max-w-md px-4 py-2.5 shadow-sm rounded-2xl ${
                             isMyMessage 
-                              ? 'bg-blue-500 text-white' 
-                              : 'bg-white text-gray-900 border border-gray-100'
+                              ? 'bg-blue-600 text-white rounded-br-sm' 
+                              : 'bg-white text-gray-900 border border-gray-100 rounded-bl-sm'
                           }`}
                         >
                           {!isMyMessage && 'name' in selectedChat && (
@@ -620,6 +659,36 @@ export const ChatPage = () => {
                                 </div>
                               </div>
                             ) : (() => {
+                              const isFileAttachment = message.content.startsWith('FILE_ATTACHMENT|');
+                              if (isFileAttachment) {
+                                const parts = message.content.split('|');
+                                const type = parts[1];
+                                const url = parts[2];
+                                const originalName = parts.slice(3).join('|') || 'Attachment';
+                                
+                                return (
+                                  <div className="flex flex-col gap-1 mt-1 mb-1">
+                                    {type === 'IMAGE' && (
+                                      <img src={url} alt={originalName} className="max-w-full sm:max-w-[250px] rounded-lg object-contain cursor-pointer hover:opacity-90 transition border border-black/10" onClick={() => window.open(url, '_blank')} />
+                                    )}
+                                    {type === 'VIDEO' && (
+                                      <video src={url} controls className="max-w-full sm:max-w-[250px] rounded-lg border border-black/10" />
+                                    )}
+                                    {type === 'DOCUMENT' && (
+                                      <a href={url} target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 bg-black/10 hover:bg-black/20 p-3 rounded-lg transition no-underline text-inherit shadow-sm min-w-[200px]">
+                                        <div className="w-10 h-10 bg-white rounded-full flex items-center justify-center shrink-0 shadow-sm text-blue-600">
+                                          <PaperClipIcon className="w-5 h-5" />
+                                        </div>
+                                        <div className="flex flex-col overflow-hidden max-w-[150px]">
+                                          <span className="font-semibold text-sm truncate">{originalName}</span>
+                                          <span className="text-[10px] opacity-70">Click to download</span>
+                                        </div>
+                                      </a>
+                                    )}
+                                  </div>
+                                );
+                              }
+
                               const isGroupInvite = message.content.startsWith('GROUP_INVITE|');
                               if (isGroupInvite) {
                                 const parts = message.content.split('|');
@@ -753,14 +822,30 @@ export const ChatPage = () => {
 
               {/* Message input */}
               <div className="bg-white p-4 border-t border-gray-200">
-                <form onSubmit={handleSendMessage} className="flex items-center">
+                <form onSubmit={handleSendMessage} className="flex items-center gap-2">
+                  <input
+                    type="file"
+                    className="hidden"
+                    ref={attachmentInputRef}
+                    onChange={handleAttachmentUpload}
+                    accept="image/*,video/*,.pdf,.doc,.docx,.xls,.xlsx,.txt,.zip"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => attachmentInputRef.current?.click()}
+                    disabled={isUploadingAttachment || isSending}
+                    className="p-2 text-gray-500 hover:text-blue-600 hover:bg-gray-100 rounded-full transition shrink-0"
+                    title="Attach file"
+                  >
+                    <PaperClipIcon className="w-6 h-6" />
+                  </button>
                   <input
                     type="text"
-                    placeholder="Type a message..."
-                    className="input flex-1 mr-2"
+                    placeholder={isUploadingAttachment ? "Uploading..." : "Type a message..."}
+                    className="input flex-1"
                     value={messageInput}
                     onChange={(e) => setMessageInput(e.target.value)}
-                    disabled={isSending}
+                    disabled={isSending || isUploadingAttachment}
                   />
                   <button
                     type="submit"
