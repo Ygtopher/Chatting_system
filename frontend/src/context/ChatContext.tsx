@@ -208,7 +208,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
     try {
       const client = new Client({
-        webSocketFactory: () => new SockJS('/ws'),
+        webSocketFactory: () => new SockJS((import.meta.env.VITE_API_BASE_URL || '') + '/ws'),
         connectHeaders: { Authorization: `Bearer ${token}` },
         reconnectDelay: 5000,
 

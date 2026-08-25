@@ -14,7 +14,7 @@ backend/uploads/
 backend/out/
 
 # Frontend (React / Vite)
-frontend/node_modules/
+node_modules/
 frontend/dist/
 frontend/build/
 frontend/.env
