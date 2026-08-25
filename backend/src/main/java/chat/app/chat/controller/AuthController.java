@@ -23,7 +23,7 @@ import java.util.Map;
 @RestController
 @RequestMapping("/api/auth")
 @CrossOrigin(
-    origins = {"http://localhost:3000", "http://localhost:5173"},
+    originPatterns = {"http://localhost:3000", "http://localhost:5173", "https://*.vercel.app"},
     allowedHeaders = {"Authorization", "Content-Type", "Accept"},
     methods = {RequestMethod.GET, RequestMethod.POST, RequestMethod.PUT, RequestMethod.DELETE, RequestMethod.OPTIONS},
     allowCredentials = "true",
