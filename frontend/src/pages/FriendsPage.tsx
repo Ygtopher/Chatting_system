@@ -1,13 +1,13 @@
 import React, { useState, useEffect } from 'react';
-import { friendsApi, chatApi, groupApi } from '../services/api';
+import { friendsApi, chatApi } from '../services/api';
 import { useNavigate } from 'react-router-dom';
 import { useChat } from '../context/ChatContext';
-import { MagnifyingGlassIcon, UserPlusIcon, CheckIcon, XMarkIcon, UserGroupIcon } from '@heroicons/react/24/outline';
-import type { UserSearchResult, FriendRequest, GroupInvite } from '../types';
+import { MagnifyingGlassIcon, UserPlusIcon, CheckIcon, XMarkIcon } from '@heroicons/react/24/outline';
+import type { UserSearchResult, FriendRequest } from '../types';
 
 export const FriendsPage: React.FC = () => {
   const navigate = useNavigate();
-  const { fetchPendingRequestsCount, fetchGroupChats } = useChat();
+  const { fetchPendingRequestsCount } = useChat();
   const [searchQuery, setSearchQuery] = useState('');
   const [searchResults, setSearchResults] = useState<UserSearchResult[]>([]);
   const [isSearching, setIsSearching] = useState(false);
