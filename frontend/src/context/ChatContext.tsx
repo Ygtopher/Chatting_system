@@ -208,7 +208,7 @@ export const ChatProvider = ({ children }: { children: ReactNode }) => {
 
     try {
       const client = new Client({
-        webSocketFactory: () => new SockJS((import.meta.env.VITE_API_BASE_URL || '') + '/ws'),
+        webSocketFactory: () => new SockJS((import.meta.env.VITE_API_BASE_URL || 'https://chatting-backend-de61.onrender.com') + '/ws'),
         connectHeaders: { Authorization: `Bearer ${token}` },
         reconnectDelay: 5000,
 
