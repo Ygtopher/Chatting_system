@@ -54,7 +54,9 @@ export const LoginPage = () => {
         setShowTokenForm(true);
       }
     } catch (err: any) {
-      setError(err.response?.data?.error || err.response?.data?.message || err.message || 'Failed to login. Please check your credentials.');
+      const data = err.response?.data;
+      const msg = typeof data === 'string' ? data : (data?.message || data?.error || err.message);
+      setError(typeof msg === 'string' ? msg : JSON.stringify(msg) || 'Failed to login. Please check your credentials.');
     } finally {
       setIsLoading(false);
     }

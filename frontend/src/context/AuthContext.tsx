@@ -93,8 +93,9 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       const response = await authApi.register(username, email, password);
       return response.data;
     } catch (error: any) {
-      const errorMessage = error.response?.data?.error || error.response?.data || error.message;
-      throw new Error(errorMessage);
+      const data = error.response?.data;
+      const msg = typeof data === 'string' ? data : (data?.message || data?.error || error.message);
+      throw new Error(typeof msg === 'string' ? msg : JSON.stringify(msg) || 'Registration failed');
     }
   };
 
