@@ -1,8 +1,6 @@
 import React from 'react';
-import { useParams } from 'react-router-dom';
 
 export const GroupDetailPage: React.FC = () => {
-  const { groupId } = useParams();
 
   return (
     <div className="container mx-auto p-4">
