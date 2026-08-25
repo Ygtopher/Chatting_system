@@ -10,7 +10,7 @@ import './index.css'
 import axios from 'axios'
 
 // Set default axios base URL and configuration
-axios.defaults.baseURL = import.meta.env.VITE_API_BASE_URL || ''
+axios.defaults.baseURL = import.meta.env.VITE_API_BASE_URL || 'https://chatting-backend-de61.onrender.com'
 axios.defaults.headers.common['Content-Type'] = 'application/json'
 axios.defaults.headers.common['Accept'] = 'application/json'
 axios.defaults.withCredentials = true

@@ -7,7 +7,7 @@ import axios from 'axios';
 const api = axios.create({
   // Vite dev proxy forwards /api → http://localhost:9090
   // In production set VITE_API_BASE_URL env variable.
-  baseURL: import.meta.env.VITE_API_BASE_URL ?? '',
+  baseURL: import.meta.env.VITE_API_BASE_URL || 'https://chatting-backend-de61.onrender.com',
   headers: {
     'Content-Type': 'application/json',
     'Accept': 'application/json',
